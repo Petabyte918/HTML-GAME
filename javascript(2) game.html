@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<link href='https://fonts.googleapis.com/css?family=Rationale' rel='stylesheet'>
+<style>
+canvas {
+    border:1px solid #d3d3d3;
+    background-color: #f1f1f1;
+    width: 100%;
+}
+body
+{
+    overflow-x: hidden;
+    overflow-y: hidden;
+    margin:0px 0px 0px 0px;
+}
+/*iframe{
+   border: 0;
+   border-color: red;
+   height: 100%;
+   left: 0;
+   position: absolute;
+   top: 0;
+   width: 100%;
+   display:block;
+}*/
+/*iframe {
+   border: 0;
+   height: 100%;
+   left: 0;
+   position: absolute;
+   top: 0;
+   width: 100%;
+   display: block;
+}*/  
+</style>
+</head>
+<body onload="intro()">
+<iframe id="manual" src="instuctions.html"></iframe>    
+</body>
+<script>  
+var i=0;
+var player;
+var enemies=[];
+var bullet;
+var keys=[];
+var dx=0;
+var dy=0;
+var len=0;
+var start=0;
+var canvasWidth=window.innerWidth;
+var canvasHieght=window.innerHeight;
+var temp=0;
+var time=0;
+/*var iframe = document.getElementById('manual');
+var innerDoc = (iframe.contentDocument) ? iframe.contentDocument : iframe.contentWindow.document;
+innerDoc.getElementById('begin').onclick = function() {
+   alert("button was clicked");
+}​;*/
+//var canvasHieght=ctx.height;
+// var canvasWidth=ctx.width;
+	var reload ={
+    x:4000,
+    y:4000,
+    value:5,
+    height:canvasWidth/40,
+    width:canvasWidth/40,
+    pause:function(){
+    		ctx = myGameArea.context;
+ 			ctx.fillStyle = "red";
+ 			ctx.fillRect(this.x,this.y,this.width,this.height);
+    },
+};
+var health={
+    x:4000,
+    y:4000,
+    value:2,
+    height:canvasWidth/40,
+    width:canvasWidth/40,
+    pause:function(){
+    		ctx = myGameArea.context;
+ 			ctx.fillStyle = "green";
+ 			ctx.fillRect(this.x,this.y,this.width,this.height);
+    },
+};
+document.addEventListener("keydown",begin);
+function begin(e){
+    keys[e.keyCode]=true;
+   if(keys[13])
+   {
+        startGame();
+   } 
+}
+function intro(){
+    myGameArea.beforeStart();
+    for(i=0;i<20;i++)
+    {
+    var enemie=new Enemies(canvasWidth/60,canvasWidth/60,"blue",Math.floor((Math.random() *1000) + 1),Math.floor((Math.random() * 700) + 1));
+    enemies.push(enemie); 
+    } 
+    //setTimeout(startGame,10000);
+}
+function startGame() {
+    //enemies=[];
+    myGameArea.clearBeforeStart();
+    myGameArea.start();
+    document.getElementById("manual").style.display="none";
+    player = new Player(canvasWidth/60,canvasWidth/60, "black", canvasWidth/2,canvasHieght/2);
+    /*for(i=0;i<20;i++)
+    {
+    var enemie=new Enemies(canvasWidth/60,canvasWidth/60,"blue",Math.floor((Math.random() *1000) + 1),Math.floor((Math.random() * 700) + 1));
+    enemies.push(enemie); 
+    */   
+}
+var myGameArea = {
+    canvas : document.createElement("canvas"),
+    start : function() {
+        this.canvas.width = window.innerWidth;
+        this.canvas.height = window.innerHeight;
+        this.context = this.canvas.getContext("2d");
+        document.body.insertBefore(this.canvas, document.body.childNodes[0]);
+        this.frameNo = 0;
+        this.interval = setInterval(updateCanvas,1);
+        //document.body.insertBefore(this.canvas, document.body.childNodes[0]);
+       // this.interval = setInterval(updateCanvas, 20);
+    },
+    beforeStart: function(){
+        this.canvas.width = window.innerWidth;
+        this.canvas.height = window.innerHeight;
+        this.context = this.canvas.getContext("2d");
+        document.body.insertBefore(this.canvas, document.body.childNodes[0]);
+        this.frameNo = 0;
+        this.interval2 = setInterval(updateCanvas2,30);
+    },
+clear : function() {
+        this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        },
+ clearBeforeStart:function() {
+    clearInterval(this.interval2);
+ },
+}
+
+function Player(width, height, color, x, y) {
+    this.width = width;
+    this.height = height;
+    this.x = x;
+    this.y = y; 
+    this.speed=10; 
+    this.angle=0;
+    this.kills=0;
+    this.bullets=10;
+    this.life=3;
+    ctx = myGameArea.context;
+   ctx.save();
+   ctx.translate(this.x+15,this.y+15);
+    ctx.rotate(this.angle);
+    ctx.translate((-this.x+15),(-this.y+15));    
+    ctx.fillStyle = color;
+    ctx.fillRect(this.x,this.y,this.width,this.height);
+    ctx.fillRect(this.x,this.y-5,this.width/2,this.height/2);
+     ctx.restore();        
+    this.move = function(){
+        ctx = myGameArea.context;
+        ctx.save();
+        ctx.translate(this.x+15,this.y+15);
+        ctx.rotate(this.angle);
+       // this.x-=this.speed;
+        //this.y+=this.speed;
+        
+       if(this.x>canvasWidth)
+            {
+               this.x=0;
+            }
+            else if(this.x<0)
+                this.x=canvasWidth;
+            else if(this.y<0)
+                this.y=canvasHieght;
+            else if(this.y>canvasWidth)
+                this.y=0; 
+            // document.getElementById("m").innerHTML=this.x+" "+this.y;
+       
+        ctx.translate(-(this.x+15),-(this.y+15));
+        ctx.fillStyle = color;
+        ctx.fillRect(this.x,this.y,this.width,this.height);
+        ctx.fillRect(this.x,this.y-5,this.width/2,this.height/2);
+        ctx.restore();
+    }
+    this.pause=function(){
+        ctx = myGameArea.context;
+        ctx.save();
+        ctx.translate((this.x+15),(this.y+15));
+        ctx.rotate(this.angle);
+        ctx.translate(-(this.x+15),-(this.y+15));
+        ctx.fillStyle = color;
+        ctx.fillRect(this.x,this.y,this.width,this.height);
+        ctx.fillRect(this.x,this.y-5,this.width/2,this.height/2);
+       ctx.restore();
+    }
+    this.hit=function(){
+    	for(i=0;i<20;i++)
+    	{
+    	if((enemies[i].x>=this.x ||	enemies[i].x+enemies[i].width>=this.x) && (enemies[i].x<=this.x+this.width || enemies[i].x+enemies[i].width<=this.x+this.width) && (enemies[i].y>=this.y || enemies[i].y+enemies[i].height>=this.y) && (enemies[i].y<=this.y+this.height || enemies[i].y+enemies[i].height<=this.y+this.height))
+    	{
+    		if(temp!=i)
+    		{
+    			this.life--;
+    			 temp=i;
+      		}
+
+    	}
+    	if(this.life==0)
+    		location.reload();
+    	}
+    }
+    this.getHealth=function(){
+    	if((this.x>=health.x ||	this.x+this.width>=health.x) && (this.x<=health.x+health.width || this.x+this.width<=health.x+health.width) && (this.y>=health.y || this.y+this.height>=health.y) && (this.y<=health.y+health.height || this.y+this.height<=health.height))
+    	{
+    		this.life+=health.value;
+    		health.x=4000;
+    		health.y=4000;
+    	}
+    }
+    this.getAmmo=function(){
+    	if((this.x>=reload.x ||	this.x+this.width>=reload.x) && (this.x<=reload.x+reload.width || this.x+this.width<=reload.x+reload.width) && (this.y>=reload.y || this.y+this.height>=reload.y) && (this.y<=reload.y+reload.height || this.y+this.height<=reload.height))
+    	{
+    		this.bullets+=reload.value;
+    		reload.x=4000;
+    		reload.y=4000;
+    	}
+    }
+}
+function Enemies(width, height, color, x, y) {
+    this.width = width;
+    this.height = height;
+    this.x = x; 
+    this.y = y;   
+    this.speed=10;
+    var max=1;
+    var min=-1;
+    this.dead=0;
+    this.dirx=Math.floor(Math.random() * (+max - +min)) + +min; 
+    this.diry=Math.floor(Math.random() * (+max - +min)) + +min;
+    if(this.dirx==0 && this.diry==0)
+    {
+        this.dirx=-1;
+        this.diry=1
+    } 
+    ctx = myGameArea.context;
+    ctx.fillStyle = color;
+    ctx.fillRect(this.x, this.y, this.width, this.height);
+        this.stay = function(){
+        ctx = myGameArea.context;
+        ctx.fillStyle = color;
+        ctx.fillRect(this.x, this.y, this.width, this.height);
+    }
+        this.follow= function(){
+           /* document.getElementById("m").innerHTML="batman"; 
+            dx=Math.abs(this.x-player.x);
+            dy=Math.abs(this.y-player.y);
+            len=Math.sqrt((dx*dx)+(dy*dy));
+            var moving=true;
+            console.log(len);
+            dx=dx/len;
+            dy=dy/len;*/
+            if(this.dead==0)
+            {   
+            this.x=(this.x)+(this.speed*this.dirx)
+            this.y=(this.y)+(this.speed*this.diry);
+            if(this.x>canvasWidth)
+            {
+               this.x=0;
+            }
+            else if(this.x<0)
+                this.x=canvasWidth;
+            else if(this.y<0)
+                this.y=canvasHieght;
+            else if(this.y>canvasHieght)
+                this.y=0;               
+            ctx = myGameArea.context;
+            ctx.fillStyle = color;
+            ctx.fillRect(this.x,this.y,this.width,this.height);
+        }
+       }
+        this.pause=function(){
+        ctx = myGameArea.context;
+        ctx.fillStyle = color;
+        ctx.fillRect(this.x,this.y,this.width,this.height);
+        }
+        this.hit=function(){
+            if((bullet.x>=this.x || bullet.x+bullet.width>=this.x) && (bullet.x<=this.x+this.width || bullet.x+bullet.width<=this.x+this.width) && (bullet.y>=this.y || bullet.y+bullet.height>=this.y) && (bullet.y<=this.y+this.height || bullet.y+bullet.height<=this.y+this.height))
+            {
+                    //this.dead=1;
+                    this.x=Math.floor((Math.random() *1000) + 1);
+                    this.y=Math.floor((Math.random() *700) + 1);
+                    player.kills++;
+                    document.getElementById("m").innerHTML=kills;      
+            }
+         /*this.dead=function(){
+            if(this.dead==1)
+            {
+            ctx.fillRect(this.x,this.y,this.width/5,this.height/5);
+            ctx.fillRect(this.x+3,this.y,this.width/5,this.height/5);
+            ctx.fillRect(this.x,this.y+3,this.width/5,this.height/5);
+            ctx.fillRect(this.x+3,this.y+3,this.width/5,this.height/5);
+            }*/
+         }   
+
+        }
+    
+function Bullet(width,height,color,x,y)
+{
+    this.width=width;
+    this.height=height;
+    this.color=color;
+    this.x=x;
+    this.y=y;
+    this.speed=13;
+    ctx=myGameArea.context;
+    ctx.fillStyle=color;
+    this.left=false;
+    this.right=false;
+    this.top=false;
+    this.bottom=false;
+    ctx.fillRect(this.x,this.y,this.width,this.height);
+     this.pause=function(){
+        ctx = myGameArea.context;
+        ctx.fillStyle = color;
+        ctx.fillRect(this.x,this.y,this.width,this.height);
+        }
+}    
+function fire(e)
+{
+    keys[e.keyCode]=true;
+     if(keys[32] && player.bullets>0)
+     {
+        player.bullets--;
+        if(player.angle==0)
+        {
+            bullet= new Bullet(player.width/5, player.width/5, "black", player.x,player.y);
+            bullet.top=true; 
+        }
+        else if(player.angle.toPrecision(2)==3.1)
+        {
+            bullet= new Bullet(player.width/5, player.width/5, "black", player.x+player.width,player.y+player.height);
+            bullet.bottom=true;       
+        }
+         else if(player.angle.toPrecision(2)==1.6)
+        {
+            bullet= new Bullet(player.width/5, player.width/5, "black", player.x+player.width,player.y);
+            bullet.right=true;       
+        }
+        else if(player.angle.toPrecision(2)==4.7)
+        {
+            bullet= new Bullet(player.width/5, player.width/5, "black", player.x,player.y+player.width);
+            bullet.left=true;
+        }
+        else if(player.angle.toPrecision(2)>0 && player.angle.toPrecision(2)<1.6)
+        {
+          if(player.angle.toPrecision(2)>0 && player.angle.toPrecision(2)<0.9)		
+          	bullet= new Bullet(player.width/5, player.width/5, "black", player.x+player.width-player.width*0.4,player.y-player.width*0.2);
+          else
+          	bullet= new Bullet(player.width/5, player.width/5, "black", player.x+player.width+player.width*0.3,player.y-player.width*0.2);
+          bullet.top=true;
+          bullet.right=true;  
+        }
+        else if(player.angle.toPrecision(2)>1.6 && player.angle.toPrecision(2)<3.1)
+        {
+          bullet= new Bullet(player.width/5, player.width/5, "black", player.x+player.width,player.y+player.width);
+          bullet.right=true;
+          bullet.bottom=true;  
+        }
+        else if(player.angle.toPrecision(2)>3.1 && player.angle.toPrecision(2)<4.7)
+        {
+          bullet= new Bullet(player.width/5, player.width/5, "black", player.x+player.width*0.3,player.y+player.width);
+          bullet.left=true;
+          bullet.bottom=true;  
+        }
+        else if(player.angle.toPrecision(2)>4.7 && player.angle.toPrecision(2)<=6)
+        {
+          bullet= new Bullet(player.width/5, player.width/5, "black", player.x-player.width*0.3,player.y+player.width*0.4);
+          bullet.left=true;
+          bullet.top=true;  
+        }
+     } 
+}    
+function movebullet(e)
+{ 
+     keys[e.keyCode]=true;  
+       if(keys[37] ||keys[38] ||keys[39] ||keys[40])
+    {
+    if(bullet.top && bullet.right)
+    {
+        if(player.angle.toPrecision(2)>0 && player.angle.toPrecision(2)<=.8)
+        {
+        bullet.x+=bullet.speed;
+        bullet.y-=bullet.speed;   
+        }
+        else
+        {
+        bullet.x+=bullet.speed;
+        bullet.y-=bullet.speed/8;
+        }
+    }  
+    else if(bullet.right && bullet.bottom)
+    {
+        if(player.angle.toPrecision(2)>1.6 && player.angle.toPrecision(2)<=2.5)
+        {
+        bullet.x+=bullet.speed;
+        bullet.y+=bullet.speed;   
+        }
+        else
+        {
+        bullet.x+=bullet.speed/8;
+        bullet.y+=bullet.speed;
+        }  
+    }  
+   else if(bullet.left && bullet.bottom)
+    {
+        if(player.angle.toPrecision(2)>3.1 && player.angle.toPrecision(2)<=3.9)
+        {
+        bullet.x-=bullet.speed/8;
+        bullet.y+=bullet.speed;   
+        }
+        else
+        {
+        bullet.x-=bullet.speed;
+        bullet.y+=bullet.speed/8;
+        }
+        
+    }  
+    else if(bullet.left && bullet.top)
+    {
+        if(player.angle.toPrecision(2)>4.7 && player.angle.toPrecision(2)<=5.5)
+        {
+        bullet.x-=bullet.speed;
+        bullet.y-=bullet.speed;   
+        }
+        else
+        {
+        bullet.x-=bullet.speed/2;
+        bullet.y-=bullet.speed;
+        }       
+    }  
+    else if(bullet.top)
+        bullet.y-=bullet.speed;  
+    else if(bullet.bottom)
+        bullet.y+=bullet.speed; 
+    else if(bullet.right)
+        bullet.x+=bullet.speed;
+    else if(bullet.left)
+        bullet.x-=bullet.speed; 
+}
+}
+function moveplayer(e)
+{	
+keys[e.keyCode]=true;
+  if(keys[37] && keys[38]) {
+        player.x-=player.speed;
+        player.y-=player.speed;
+    }
+  else if(keys[38] && keys[39])
+  {
+        player.x+=player.speed;
+        player.y-=player.speed;
+  }
+  else if(keys[39] && keys[40])
+  {
+        player.x+=player.speed;
+        player.y+=player.speed;
+  }
+  else if(keys[40] && keys[37])
+  {
+        player.y+=player.speed;
+        player.x-=player.speed;                     
+  }
+  else if(keys[37])
+  {
+    player.x-=player.speed;
+  }
+  else if(keys[38])
+  {
+    player.y-=player.speed;
+  }
+  else if(keys[39])
+  {
+    player.x+=player.speed;
+  }
+  else if(keys[40])
+  {
+    player.y+=player.speed;
+  }
+ player.move();  
+}
+function keyrelease(e)
+{
+keys[e.keyCode] = false;
+}
+function moveenemies(e)
+{
+    if(keys[37] ||keys[38] ||keys[39] ||keys[40])
+    {
+    	time+=0.2;
+    	if(time>10)
+    	{
+    		reload.x=Math.floor((Math.random() *1000) + 1);
+    		reload.y=Math.floor((Math.random() *700) + 1);
+    		health.x=Math.floor((Math.random() *700) + 1);
+    		health.y=Math.floor((Math.random() *1000) + 1);
+    		time=0;
+    	}
+    keys[e.keyCode]=true;
+
+    for(i=0;i<20;i++)
+    {
+        enemies[i].follow();    
+    }
+}
+}   
+function changeangle(e)
+{
+    keys[e.keyCode]=true;
+    if(player.angle>6)
+        player.angle=0;
+    if(player.angle<0)
+        player.angle=6;
+    if(keys[102])
+        player.angle+=.1;
+    if(keys[100])
+        player.angle-=.1;
+    //document.getElementById("m").innerHTML=player.angle;
+}
+function updateCanvas()
+{
+
+  myGameArea.clear();
+  document.addEventListener("keydown",moveplayer);
+  document.addEventListener("keydown",moveenemies);
+  document.addEventListener("keydown",changeangle);
+  document.addEventListener("keydown",fire);
+  document.addEventListener("keydown",movebullet);
+  document.addEventListener("keyup",keyrelease);
+
+    ctx = myGameArea.context;
+    ctx.font = "30px Rationale";
+    ctx.fillStyle="black";
+    ctx.fillText("Ammo "+player.bullets+" Kills "+player.kills+" Life "+player.life+" Time "+time.toFixed(),canvasWidth-350,40);
+  player.pause();
+  reload.pause();
+  health.pause();
+  player.hit();
+  player.getAmmo();
+  player.getHealth();
+   for(i=0;i<20;i++)
+    {
+        enemies[i].pause();    
+    }
+    bullet.pause();
+    
+    for(i=0;i<20;i++)
+    {
+        enemies[i].hit();
+        //enemies[i].dead();
+    }
+}
+function updateCanvas2()
+{
+    myGameArea.clear();
+     for(i=0;i<20;i++)
+    {
+        enemies[i].follow();    
+        ctx=myGameArea.context;
+        ctx.font = "30px Rationale";
+        ctx.fillStyle="black";
+        ctx.fillText("Press enter to Play game",canvasWidth/2-150,canvasHieght/2);
+    }
+}
+</script>
+</html>
