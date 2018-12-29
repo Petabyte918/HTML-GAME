@@ -1,0 +1,5 @@
+this is a time based game.
+enemies move only when you move meaning time stops when you stop moving, so you can plan at which direction shoul you fire next
+you get 10 bullets and 3 life.As you progress you will get more lives and bullets but they will only appear for 10 seconds.
+press space to fire bullet.
+use arrow keys to move your character and 4 and 6 to change angle. 
